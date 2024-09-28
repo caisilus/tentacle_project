@@ -51,26 +51,15 @@ public class TargetScript : MonoBehaviour
     {
         ResetPoints();
 
-        Vector3[] axis = nodes.Select(node => node.Axis).ToArray();
-        for (int i = 1; i < axis.Length; i++)
-        {
-            Quaternion angle = Quaternion.identity;
-            for (int j = 0; j < i; j++)
-            {
-                angle = Quaternion.AngleAxis(nodes[j].AngleInDegrees, axis[j]) * angle;
-            }
-            axis[i] = angle * axis[i];
-        }
+        Vector3[] axis = ComputeAngles();
+
+        Quaternion angle = Quaternion.identity;
 
         for (int i = 1; i < points.Length; i++)
         {
             var diff = Vector3.up * lengthes[i - 1];
 
-            Quaternion angle = Quaternion.identity;
-            for (int j = 0; j < i; j++)
-            {
-                angle = Quaternion.AngleAxis(nodes[j].AngleInDegrees, axis[j]) * angle;
-            }
+            angle = Quaternion.AngleAxis(nodes[i - 1].AngleInDegrees, axis[i - 1]) * angle;
             diff = angle * diff;
 
             points[i] = points[i - 1] + diff;
@@ -82,9 +71,18 @@ public class TargetScript : MonoBehaviour
         transform.position = topPosition;
     }
 
-    private void LogVector(Vector3 vector)
+    private Vector3[] ComputeAngles()
     {
-        Debug.Log($"x: {vector.x}, y: {vector.y}, z: {vector.z}");
+        Vector3[] axis = nodes.Select(node => node.Axis).ToArray();
+        Quaternion angle = Quaternion.identity;
+
+        for (int i = 1; i < axis.Length; i++)
+        {
+            angle = Quaternion.AngleAxis(nodes[i - 1].AngleInDegrees, axis[i - 1]) * angle;
+            axis[i] = angle * axis[i];
+        }
+
+        return axis;
     }
 
     private void DebugWithSperes()
@@ -92,21 +90,6 @@ public class TargetScript : MonoBehaviour
         for (int i = 0; i < points.Length; i++)
         {
             debugPool[i].transform.position = points[i];
-        }
-    }
-
-    private void _RotateAxis()
-    {
-        Vector3[] axis = nodes.Select(node => node.Axis).ToArray();
-        for (int i = 1; i < axis.Length; i++)
-        {
-            Quaternion angle = Quaternion.identity;
-            for (int j = 0; j < i; j++)
-            {
-                angle = angle * Quaternion.AngleAxis(nodes[j].AngleInDegrees, axis[j]);
-                Debug.Log(angle);
-            }
-            axis[i] = angle * axis[i];
         }
     }
 }
