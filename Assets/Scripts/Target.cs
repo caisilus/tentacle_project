@@ -2,11 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Target : MonoBehaviour
 {
-   public void SetPosition(Vector3 newPosition)
+    public Vector3 Position
     {
-        transform.position = newPosition;
+        get => transform.position;
+        set
+        {
+            transform.position = value;
+        }
     }
 }

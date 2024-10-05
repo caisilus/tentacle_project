@@ -8,10 +8,16 @@ public class RoboticArm : MonoBehaviour
     [SerializeField]
     private ArmSegment[] segments;
 
-    [SerializeField]
-    private float[] angles;
+    public float[] AnglesInDegrees;
 
     public ArmSegment[] Segments { get => segments; }
+
+
+    public float[] Lengthes { get => segments.Select(segment => segment.Length).ToArray(); }
+
+    public Vector3[] Axis { get => segments.Select(segment => segment.Axis).ToArray(); }
+
+    public Vector3 BasePosition { get => segments.First().GlobalPosition; }
 
     void Update()
     {
@@ -22,7 +28,7 @@ public class RoboticArm : MonoBehaviour
     {
         for (int i = 0; i < segments.Length; i++)
         {
-            segments[i].AngleInDegrees = angles[i];
+            segments[i].AngleInDegrees = AnglesInDegrees[i];
         }
     }
 }

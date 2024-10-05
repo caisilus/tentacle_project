@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,14 +6,11 @@ using UnityEngine;
 
 public static class ForwardKinematicsAlgorithm
 {
-    public static Vector3[] CalculateJointPositions(ArmSegment[] segments)
+    public static Vector3[] CalculateJointPositions(Vector3 basePosition, float[] lengthes, Vector3[] axis, float[] anglesInDegrees)
     {
-        Vector3 basePosition = segments.First().GlobalPosition;
-        float[] lengthes = segments.Select(x => x.Length).ToArray();
-
         Vector3[] points = InitialJointPositions(basePosition, lengthes);
 
-        Vector3[] axis = ComputeAngles(segments);
+        Vector3[] rotatedAxis = ComputeAngles(axis, anglesInDegrees);
 
         Quaternion angle = Quaternion.identity;
 
@@ -20,7 +18,7 @@ public static class ForwardKinematicsAlgorithm
         {
             var diff = Vector3.up * lengthes[i - 1];
 
-            angle = Quaternion.AngleAxis(segments[i - 1].AngleInDegrees, axis[i - 1]) * angle;
+            angle = Quaternion.AngleAxis(anglesInDegrees[i - 1], rotatedAxis[i - 1]) * angle;
             diff = angle * diff;
 
             points[i] = points[i - 1] + diff;
@@ -28,6 +26,8 @@ public static class ForwardKinematicsAlgorithm
 
         return points;
     }
+
+    public static Vector3 CalculateTipPosition(Vector3 basePosition, float[] lengthes, Vector3[] axis, float[] anglesInDegrees) => CalculateJointPositions(basePosition, lengthes, axis, anglesInDegrees).Last();
 
     private static Vector3[] InitialJointPositions(Vector3 basePosition, float[] lengthes)
     {
@@ -41,14 +41,13 @@ public static class ForwardKinematicsAlgorithm
         return points;
     }
 
-    private static Vector3[] ComputeAngles(ArmSegment[] segments)
+    private static Vector3[] ComputeAngles(Vector3[] axis, float[] angles)
     {
-        Vector3[] axis = segments.Select(segment => segment.Axis).ToArray();
         Quaternion angle = Quaternion.identity;
 
         for (int i = 1; i < axis.Length; i++)
         {
-            angle = Quaternion.AngleAxis(segments[i - 1].AngleInDegrees, axis[i - 1]) * angle;
+            angle = Quaternion.AngleAxis(angles[i - 1], axis[i - 1]) * angle;
             axis[i] = angle * axis[i];
         }
 

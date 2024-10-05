@@ -13,16 +13,62 @@ public class SceneController : MonoBehaviour
 
     [SerializeField]
     private bool forwardKinematics;
+    [SerializeField]
+    private bool inverseKinematics;
 
-    public bool ForwardKinematics { get => forwardKinematics; }
-    public bool ReverseKinematics { get => !forwardKinematics; }
+    [SerializeField]
+    private float distanceEps = 0.1f;
 
-    void Update()
+    [SerializeField]
+    private float iterationsLimit = 1000;
+
+    private int iterations = 0;
+
+    private Vector3 armTipPosition;
+
+
+    private void FixedUpdate()
     {
+        armTipPosition = ForwardKinematicsAlgorithm.CalculateTipPosition(
+            roboticArm.BasePosition,
+            roboticArm.Lengthes,
+            roboticArm.Axis,
+            roboticArm.AnglesInDegrees
+        );
+
         if (forwardKinematics)
         {
-            Vector3[] jointPositions = ForwardKinematicsAlgorithm.CalculateJointPositions(this.roboticArm.Segments);
-            target.SetPosition(jointPositions.Last());
+            ForwardKinematicsStep();
+            return;
+        } 
+        
+        if (inverseKinematics) 
+        {
+            InverseKinematicsStep();
+            return;
         }
+
+        ResetIterations();
+    }
+
+    private void ForwardKinematicsStep()
+    {
+        target.Position = armTipPosition;
+    }
+
+    private void InverseKinematicsStep()
+    {
+        if (iterations > iterationsLimit || Vector3.Distance(armTipPosition, target.Position) < distanceEps)
+        {
+            return;
+        }
+
+        InverseKinematics.UpdateAngles(target.Position, roboticArm, 10f);
+        iterations++;
+    }
+
+    private void ResetIterations()
+    {
+        iterations = 0;
     }
 }
